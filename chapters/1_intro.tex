@@ -1,0 +1,45 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Contexte}
+\label{subsec:intro-context}
+
+Le contexte est propre à notre foyer étudiant au début du semestre d'Automne 2019. Les Responsables en Approvisionnement du Pic’asso ont quelques difficultés pour bien gérer les stocks du foyer. En effet lors des premières semaines de prise de poste, il est difficile d’évaluer les quantités nécessaires pour satisfaire les étudiants. De plus, la demande varie, parfois fortement, de semaine en semaine en suivant certaines tendances. Le prédicteur créé par Sylvain Marchienne, lors d'un projet antérieur, permet d’avoir une idée globale des ventes mais n’est pas encore assez précis pour aiguiller correctement les choix d'approvisionnement. De plus il n’est actuellement pas pensé pour être utilisé à des fins de production, puisqu’il ne s’agit encore que d’un prototype.
+
+\subsection{Objectifs}
+\label{subsec:intro-objectives}
+
+Le but principal de ce projet de recherche est de fournir une solution concrète pour les responsables en approvisionnement. Nous allons donc développer un outil d'aide à la décision permettant de les aider pour les commandes et la gestion des stocks. Pour cela plusieurs objectifs sont définis.
+
+D'abord on cherche à améliorer la précision du prédicteur. Des paramètres non étudiées expliquent certains écarts que nous avons pu observer, par exemple lors de la veille d'évènement utcéen comme le Gala. Pour cela plusieurs pistes sont à explorer: utiliser de nouveaux modèles plus adaptés aux séries temporelles, retraiter les données brutes d'une meilleure façon ou bien prendre en compte plus de paramètres influençant les ventes, comme la météo et les événements associatifs, des paramètres difficiles d’accès mais cruciaux car impactant fortement les UTCéens et leurs consommations.
+
+Ensuite on veut créer un outil simple d'utilisation présentant les stocks et les prédictions de ventes de manière efficace. Des indicateurs et des analyses statistiques divers pourront être présents afin d'apporter une meilleure compréhension des données. Cela pourrait aussi nous aider à améliorer, dans le futur, la précision du prédicteur.
+
+Enfin, pour une meilleure intégration dans le système informatique de l’association, il faudrait créer une interface utilisateur commune DataPic, avec tout ces outils, destinée à l’équipe du Pic’asso. D’autres modules DataPic potentiellement créés dans le futur, comme la détection d’anomalie, pourraient alors s’ajouter facilement à l'outil qui pourra et devra être modulaire.
+
+\subsection{Moyens à disposition}
+\label{subsec:intro_moyens}
+
+A notre disposition, nous avons toutes les ressources disponibles sur internet. Nous travaillons à l'aide de nos ordinateurs portable sous nos différents IDE pour Python. Nous avons choisi Python car c'est un language de prototypage rapide, simple, et adapté à la modélisation statistiques grâce aux multiples bibliothèques disponibles. Les bibliothèques que nous utiliserons le plus sont \code{numpy} et \code{pandas} pour les structures des données en DataFrame et Series et les différents opérateurs associés, ainsi que \code{statsmodels} qui comprends des fonctions faciles d'utilisation pour l'apprentissage et la modélisation statistique. Celles-ci sont toutes open-sources ce qui permet de faciliter le développement du projet. Les documentations sont correctes mais manque de profondeur. Elles s'adressent à un public de connaisseur. Nous avons eu quelques problèmes pour la gestion de la bibliothèque \code{statsmodels} dont la plupart des dépendances n'ont pas été mis à jour, par exemple, causant dans les premiers jours des incompatibilités entre \code{numpy} et \code{statsmodels} nous obligeant à réaliser des downgrades de certaines bibliothèques.
+
+Ensuite nous avons accès aux données des ventes du Pic'asso comme nous le verrons dans la partie \ref{subsec:data_ventes_sources}.
+
+
+\subsection{Répartition du travail}
+\label{subsec:work_share}
+
+Alexandre ayant déjà eu de l'expérience avec les transaction Weezevent, s'est occupé de la collecte et du traitement des données. Lorys et Alexandre sont en FDD, ils se sont donc occupés de la partie analyse de données et modélisation \ref{sec:modeles}. 
+Matthieu étant en filière ADEL, il s'est attelé à la création de l'interface de présentation des prédictions et de gestion des stocks.
+
+
+\subsection{Plan}
+
+Notre rapport se composera des grandes parties suivantes:
+
+\begin{enumerate}[nolistsep]
+    \item Cette brève introduction
+    \item La collecte des données
+    \item Les séries temporelles et les modèles associés
+    \item L'interface utilisateur
+    \item Conclusion
+\end{enumerate}

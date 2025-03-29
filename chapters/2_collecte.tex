@@ -1,0 +1,156 @@
+\section{Collecte des données}
+\label{sec:collecte}
+
+Avant tout, il s'agit de collecter les données utiles à la modélisation et de les nettoyer. Comme nous pensons obtenir de meilleurs résultats en incluant de meilleures variables explicatives, il nous faut les trouver.
+
+Nous collecterons et traiterons les données de ventes dans un premier temps, et les données événementielles dans un second temps.
+
+
+\subsection{Données de ventes}
+\label{subsec:data_ventes}
+
+Les données de ventes antérieurs sont essentielles car elles nous servent pour l'apprentissage et les tests de nos modèles et la découverte des paramètres adéquat. Tout cela dans le but de prédire les prochaines ventes..
+Un traitement adéquat et des données adaptées sont alors nécessaires pour obtenir de bons résultats.
+
+\subsubsection{Source des données et récupération}
+\label{subsec:data_ventes_sources}
+
+Le prestataire de gestion des ventes est \href{Weezevent}{https://weezevent.com/}. Il s'agit d'une entreprise proposant des services de billetterie, de paiement sans contact pour les événements. Le Pic'asso n'utilise que le paiement sans contact développé initialement à l'UTC et appelé PayUTC.
+
+Cinq ans de données de ventes sont disponibles, d'Automne 2014 à aujourd'hui, Printemps 2019. Chaque vente correspond à une transaction contenant les variables d'intérêt du tableau \ref{tab:transaction_description}.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{l|l}
+        Variable            & Description \\
+        \hline
+        id                  & L'identifiant de transaction \\
+        created             & L'horodatage de création \\
+        validated           & L'horodatage de validation \\
+        status              & Le statut de la transaction (\texttt{'V'} pour validée) \\
+        rows                & Une transaction peut avoir plusieurs produits achetés \\
+        rows.item           & L'identifiant du produit acheté \\
+        rows.unit\_price    & Le prix unitaire du produit en centimes \\
+        rows.quantity       & La quantité achetée
+    \end{tabular}
+    \caption{Description d'une transaction}
+    \label{tab:transaction_description}
+\end{table}
+
+Les données sont récupérables de deux façons différentes:
+\begin{itemize}[nolistsep]
+    \item de manière statique: en téléchargeant un export via l'interface d'administration
+    \item de manière dynamique: via une API web (Interface de Programmation d'Application en ligne) 
+\end{itemize}
+
+Sylvain Marchienne récupérait les données par export. C'est une solution pratique pour un prototype. Cependant ici l'un des objectifs étant la mise en production, une récupération des données de façon automatique est nécessaire.
+
+Pour cela nous avons développé:
+\begin{itemize}[nolistsep]
+    \item un client intéragissant avec l'API PayUTC nommé \lstinline{PayutcClient}
+    \item un collecteur de données \lstinline{PayutcCollector} utilisant le client précédent
+\end{itemize}
+
+Pour une période de collecte choisie, le client s'occupe de réaliser l'appel HTTP et de transmettre les données brutes au collecteur. Ce dernier traite chaque transaction et compte le nombre de chaque produit vendue par jour. On obtient alors un dictionnaire de quantité vendue par produit pour chaque jour collecté.
+
+Les quantités vendues par jour correspondent à un format idéal. Il s'agit du grain le plus fin qui nous intéresse, en effet il n'y a pas d'intérêt à prédire les ventes sur seulement quelques heures. Cela permet de les agréger facilement en semaine si besoin.
+
+Les ventes de nos produits sont repartis sur 5 ans soit 10 semestres.
+Concernant les produits, il est aussi possible de les récupérer de la même façon avec des points d'accès à l'API différents. Nous obtenons alors 1153 produits, contenant les variables d'intérêt du tableau \ref{tab:product_description}.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{l|l}
+        Variable        & Description \\
+        \hline
+        id              & L'identifiant du produit \\
+        active          & Si le produit est disponible à la vente \\
+        alcool          & Si le produit est alcoolisé \\
+        category        & L'identifiant de la catégorie du produit \\
+        image\_url      & L'url de l'image du produit \\
+        name            & Le nom du produit \\
+        price           & Le prix de vente \\
+        removed         & Si le produit a été supprimé
+    \end{tabular}
+    \caption{Description d'un produit}
+    \label{tab:product_description}
+\end{table}
+
+Chaque produit appartient à une catégorie qui le définit. Cette catégorie a un identifiant numérique unique et un nom.
+
+
+\subsubsection{Nettoyage des données de ventes}
+\label{subsec:data_ventes_preproccess}
+
+Une fois les données brutes récupérées il faut les nettoyer et les transformer dans un format pratique à utiliser. Pour cela nous réalisons plusieurs pré-traitements.
+
+\paragraph{Choix des catégories de produits intéressantes}
+\label{par:choice_categories}
+
+Sur les 1153 produits récupérés, tous ne sont pas intéressants à prédire. En effet il y a beaucoup de produits très éphémères, comme les menus, ou alors vendus uniquement lors d'un événement, comme une place pour l'Associathon. Nous pouvons facilement repérer les produits intéressants par leur catégorie. 
+
+Ainsi, seuls les produits des catégories suivantes seront retenus:
+\begin{itemize}[nolistsep]
+    \item Bières bouteilles
+    \item Bières pression
+    \item Softs
+    \item Snacks Salés
+    \item Snacks Sucrés
+    \item Glacé
+    \item Repas
+    \item Fruits \& Jus frais
+    \item Petit Dej
+    \item Pampryl
+\end{itemize}
+Il reste alors 435 produits de catégorie intéressante.
+
+\paragraph{Regroupement de produits similaires}
+\label{par:similar_products}
+
+Ensuite, nous nous apercevons que parmi les produits restants, certains ont le même nom à quelques lettres près et correspondent donc au même produit vendu mais avec des identifiants différents. Afin de récupérer le maximum de données par produit réel, il est préférable de les traiter sous un seul identifiant. Il faut alors détecter les doublons et les regrouper.
+
+Pour détecter les doublons, nous appliquons la distance de Levenshtein à chaque paire de nom. Cette distance correspond au nombre minimal de charactères à changer dans un mot pour obtenir l'autre. Par une simple exploration des données, nous nous apercevons que les paires de mots ayant une distance de 2 ou moins correspondent au même produit. Nous obtenons alors une liste des similarités. Pour chaque couple il suffit alors de garder l'identifiant le plus bas (soit le plus ancien car les ids sont auto-incrémentés) et de garder une liste des ids similaires par produit. Nous obtenons alors 376 produits uniques
+
+Nous créons alors une map \texttt{\{id\_similaire => id\_unique\}} qui sert lors du traitement des transactions à utiliser le bon identifiant unique.
+
+% x Description des données
+% x Récup API
+% . Problèmes ?
+% x Choix des catégories
+% x Regroupement des produits similaires
+% . Anonymat ? (JBL)
+
+
+\subsection{Événements et autres données}
+\label{subsec:data_event}
+
+Une de nos idées pour améliorer les prédictions est d'apporter de meilleures variables explicatives. Au début du projet, Sylvain Marchienne utilisait des régresseurs avec les données de ventes et le calendrier UTCéen qui était ajouté à la main.
+
+Nous avons alors pensé à plusieurs améliorations possibles:
+\begin{enumerate}[nolistsep]
+    \item Créer un format plus automatisé pour le calendrier UTCéen
+    \item Incorporer la popularité des événements à partir du groupe Facebook UTC
+    \item Ajouter des informations sur les produits, ainsi que leur notation à partir de différents sites spécialisés
+    \item Intégrer des informations météorologiques
+\end{enumerate}
+
+\subsubsection{Calendrier UTCéen}
+\label{subsec:calendar}
+
+Collecter le calendrier UTCéen n'est pas facile. A notre connaissance, il n'y a pas d'API proposant le calendrier universitaire ou associatif. La seule solution est de récolter ces données à la main. Ajouter jour par jour les événements dans un DataFrame python est laborieux, c'est pourquoi il fallait trouver un format plus facile à manipuler. Ainsi nous avons créer un tableur CSV contenant la liste de tous les événements UTCéens avec leur date de début et de fin, et leur type.
+
+Ensuite chaque événement est collecté par un \code{EventsCollector} qui concatène les événements dans un calendrier par jour sous forme de DataFrame utilisable facilement par la suite.
+
+\subsubsection{Météo et Produits}
+\label{subsec:meteo_products}
+
+Concernant la météo et les caractéristiques de produits, nous n'avons pas eu le temps de nous en occuper. De plus les APIs sont restreintes et parfois payantes.
+
+
+\subsection{Confidentialité des données}
+\label{subsec:rgpb}
+
+Les données manipulées étant des transactions, elles peuvent être sensibles. Cependant nous ne collectons que ce qui est nécessaire: les ventes de chaque produit par jour. Ce ne sont pas des données personnelles.
+
+De plus les données sont sécurisées. L'accès au code Gitlab est restreint et la base de données Arango est sécurisée et contrôlée. De même les clés nécessaires pour récupérer les transactions depuis Weezevent sont gardées secrètes.
+
