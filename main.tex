@@ -1,0 +1,125 @@
+\documentclass[a4paper,twoside,12pt]{article}
+
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+
+\usepackage{import}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{bbm}
+\usepackage{titlesec}
+\usepackage{url}
+
+\usepackage[margin=2cm,top=32mm,columnsep=20pt]{geometry}
+\usepackage{multirow,multicol} % Style double colonne 
+\usepackage{abstract} % Customization de l'abstract 
+\usepackage{fancyhdr} % en-têtes et pieds de page 
+\usepackage{float} % tables et figures en double colonne 
+\usepackage{listings}
+
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,filecolor=green]{hyperref}
+
+
+% En-têtes et pieds de page 
+\pagestyle{fancy}  
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{Rapport de PR - DataPic} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+\setlength{\parskip}{1ex} % espace entre paragraphes 
+
+% Commandes perso
+\newcommand{\bsx}{\boldsymbol{x}}
+\newcommand{\bsX}{\boldsymbol{X}}
+\newcommand{\transp}{^{\mathrm{t}}}
+\newcommand{\todo}[1]{{\large\color{red} #1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\model}[1]{\textrm{#1}}
+\newcommand{\AR}{\model{AR}}
+\newcommand{\MA}{\model{MA}}
+\newcommand{\ARIMA}{\model{ARIMA}}
+\newcommand{\SARIMA}{\textrm{SARIMA}}
+\newcommand{\SARIMAX}{\model{SARIMAX}}
+\newcommand{\ts}{\texttt{ts}}
+
+
+% Titles format
+% \setcounter{secnumdepth}{4}
+% \renewcommand{\thechapter}{\Roman{chapter}}
+% \renewcommand{\thesection}{\Roman{section})}
+% \renewcommand{\thesubsection}{\arabic{subsection})}
+% \renewcommand{\thesubsubsection}{\arabic{subsubsection})}
+% \renewcommand{\theparagraph}{\roman{paragraph})}
+
+\titleformat{\paragraph}[hang]{\normalfont\normalsize\bfseries}{\theparagraph}{}{}[]
+\titlespacing*{\paragraph}{\parindent}{10pt}{0pt}
+
+
+% ---------------------------------------------------------------------------
+%           Title page & Abstract
+% ---------------------------------------------------------------------------
+
+\title{DataPic – Prédiction de ventes}
+\author{Alexandre Brasseur, Matthieu Glorion, Lorys Hamadache}
+\date{2018-2019}
+
+\begin{document}
+
+% Title
+\maketitle
+\begin{center}
+    \includegraphics[width=\linewidth]{figures/logo.png}
+\end{center}
+\thispagestyle{empty}
+\clearpage
+
+\null
+\thispagestyle{empty}
+\newpage
+
+% TOC
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+
+% Abstract
+\thispagestyle{fancy}
+\begin{abstract}
+Ce document restitue le travail de notre groupe dans le cadre du Projet de Recherche (PR) \textbf{DataPic} réalisé à l'Université de Technologie de Compiègne (\emph{UTC}). Notre groupe s'intéresse à la prévision des ventes du foyer étudiant de l'UTC, le \textbf{Pic’asso}, afin de pouvoir gérer l'approvisionnement de celui ci.
+En effet chaque jour de la semaine des centaines d'étudiants passent au Pic'asso et consomment de la nourriture et des boissons. Les stocks se vident alors assez rapidement et il est difficile pour les responsables de l'approvisionnement d'estimer correctement la demande. L'objectif de notre projet est de construire un outil d'aide à la décision par prévision des ventes.
+\end{abstract}
+\clearpage
+
+
+% ---------------------------------------------------------------------------
+%           Chapters
+% ---------------------------------------------------------------------------
+
+\import{chapters/}{1_intro.tex}\clearpage
+\import{chapters/}{2_collecte.tex}\clearpage
+\import{chapters/}{3_modeles.tex}\clearpage
+\import{chapters/}{4_interface.tex}\clearpage
+\import{chapters/}{5_conclusion.tex}\clearpage
+% \import{chapters/}{appendix.tex}\clearpage
+
+
+% ---------------------------------------------------------------------------
+%           Tables and Bibliography
+% ---------------------------------------------------------------------------
+
+\listoffigures\clearpage
+
+\nocite{*}
+\bibliographystyle{abbrv}
+\bibliography{refs}
+
+
+\end{document}
